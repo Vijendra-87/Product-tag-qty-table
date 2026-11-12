@@ -1,0 +1,336 @@
+<script>
+  window.jQuery || document.write('<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"><\/script>')
+</script>
+{% if shop.metafields.ACPTiered.EnableDisable == true %}
+  {{ 'ac-tiered-style.css' | asset_url | stylesheet_tag }}
+  <div style="display:none" id="ac-money-format">{{ shop.money_format }}</div>
+   {{ shop.metafields.ACPTiered.ThemeAppSettings }}
+  <style>
+    @media only screen and (max-width: 600px) {
+      #saved-banner-div {
+        text-align: center;
+      }
+    }
+   #saved-banner-div {
+        text-align: end;
+      }
+  </style>
+<script type="text/javascript" defer>
+    var ac_themeId = Shopify.theme.id;
+    var ACDiscountApp = ACDiscountApp || {};ACDiscountApp.Common = ACDiscountApp.Common || {};ACDiscountApp.CartPage = ACDiscountApp.CartPage || {};ACDiscountApp.PDPage = ACDiscountApp.PDPage || {};
+
+{% assign customerId = "acp_" | append: customer.id %}
+{% assign customerTagsVal = false %}
+{% assign acpCustomerTag = '' %}
+{% assign _ShopTags = shop.metafields.ACPTiered.Tags.value.Tags %}
+{% assign _custLookupTags = '' %}
+{% if customer %}
+  {% for tag in customer.tags %}
+    {% if tag == customerId %}
+      {% assign customerTagsVal = true %}
+    {% elsif tag contains "acp_" and acpCustomerTag == '' %}
+      {% assign acpCustomerTag = tag %}
+    {% endif %}
+  {% endfor %}
+  {% if customerTagsVal and customerId %}{% assign _custLookupTags = _custLookupTags | append: ',' | append: customerId %}{% endif %}
+  {% if acpCustomerTag != '' and acpCustomerTag != blank %}{% assign _custLookupTags = _custLookupTags | append: ',' | append: acpCustomerTag %}{% endif %}
+  {% for _tag in _ShopTags %}
+    {% if customer.tags contains _tag %}
+      {% unless _tag contains "acp_" %}
+        {% assign _custLookupTags = _custLookupTags | append: ',' | append: _tag %}
+      {% endunless %}
+    {% endif %}
+  {% endfor %}
+  {% for tag in customer.tags %}
+    {% unless tag contains "acp_" %}
+      {% assign _custLookupTags = _custLookupTags | append: ',' | append: tag %}
+    {% endunless %}
+  {% endfor %}
+{% endif %}
+{% assign _custLookupTags = _custLookupTags | remove_first: ',' | split: ',' %}
+
+  	ACDiscountApp.Common.GlobalFields = function () {
+      this.isCustomer = {% if customer %}true{% else %}false{% endif %};
+      this.customerTag = '{{ acpCustomerTag }}';
+	this.currency = '{{ shop.currency }}';
+	this.formatMoney=function(b,g){if(typeof Shopify.formatMoney==="function"){return Shopify.formatMoney(b,g)}if(typeof b=="string"){b=b.replace(".","")}var f="";var e=/\{\{\s*(\w+)\s*\}\}/;var a=g||"${{ amount }}";function c(h,i){return(typeof h=="undefined"?i:h)}function d(m,k,l,j){k=c(k,2);l=c(l,",");j=c(j,".");if(isNaN(m)||m==null){return 0}m=(m/100).toFixed(k);var n=m.split("."),i=n[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g,"$1"+l),h=n[1]?(j+n[1]):"";return i+h}switch(a.match(e)[1]){case"amount":f=d(b,2);break;case"amount_no_decimals":f=d(b,0);break;case"amount_with_comma_separator":f=d(b,2,".",",");break;case"amount_no_decimals_with_comma_separator":f=d(b,0,".",",");break}return a.replace(e,f)};
+	this.currencySymbol = (document.getElementById("ac-money-format").textContent).trim();this.currencySymbol = this.currencySymbol.split("}");this.currencySymbol = this.currencySymbol[2];
+	this.amount = (document.getElementById("ac-money-format").textContent).trim();  
+ this.Storetime = function(){return '{{ 'now' | date: "%Y-%m-%dT%H:%M:%S" }}'};
+ this.active_market_handle = `{{ localization.market.handle }}`;
+     var calcTime = function(offset_) {d_ = new Date();utc_ = d_.getTime() + (d_.getTimezoneOffset() * 60000);nd_ = new Date(utc_ + (3600000 * offset_));return Date.parse(nd_.getMonth()+ 1 +"/"+nd_.getDate()+"/"+ nd_.getFullYear() +" "+nd_.getHours()+":"+nd_.getMinutes());} 
+      this.StartEndDateValid = function (startDate, endDate) {var Storetime = `{{ 'now' | date: "%Y-%m-%dT%H:%M:%S" }}`;var isStrtDtVald_ = false; var isEndDtVald_ = false; var todayDate_ = Date.parse(Storetime); if (startDate != null) { var startDate_ = Date.parse(startDate); isStrtDtVald_ = todayDate_ >= startDate_; } else { isStrtDtVald_ = true; } if (endDate != null) { var endDate_ = Date.parse(endDate); isEndDtVald_ = todayDate_ <= endDate_; } else { isEndDtVald_ = true; }if (isStrtDtVald_ && isEndDtVald_) { return true; }else { return false; } }
+
+      var TimercalcTime = function(offset_) {
+        d_ = new Date();
+        utc_ = d_.getTime() + (d_.getTimezoneOffset() * 60000);
+        nd_ = new Date(utc_ + (3600000 * offset_));
+        return Date.parse(nd_.getMonth()+ 1 +"/"+nd_.getDate()+"/"+ nd_.getFullYear() +" "+nd_.getHours()+":"+nd_.getMinutes());
+      } 
+      
+      this.TimerStartEndDateValid = function (startDate, endDate) { 
+        var isStrtDtVald_ = false; var isEndDtVald_ = false; 
+        let Storetime = `{{ 'now' | date: "%Y-%m-%dT%H:%M:%S" }}`;
+        var todayDate_ = Date.parse(Storetime);
+        if (startDate != null) { var startDate_ = Date.parse(startDate); isStrtDtVald_ = todayDate_ >= startDate_; }
+        else { isStrtDtVald_ = true; } 
+        if (endDate != null) { var endDate_ = Date.parse(endDate); isEndDtVald_ = todayDate_ <= endDate_; }
+        else { isEndDtVald_ = true; }
+        if (isStrtDtVald_ && isEndDtVald_) { return {valid: true, start_date: startDate, end_date: endDate } }else { return {valid:false} } }
+      
+      this.GetTierObject = function (metafieldArray, variantId) { 
+      var obj = metafieldArray.tier !== undefined ? metafieldArray.tier : metafieldArray; 
+      if (obj.entity_type === "variants") {  
+        var variantIndex = obj.variant_ids.indexOf(variantId.toString()) != -1 ? obj.variant_ids.indexOf(variantId.toString()) : obj.variant_ids.indexOf(Number(variantId));
+        if (variantIndex !== -1) { 
+          var objToReturn = { entity_type: "variants", discount_type: obj.discount_type[variantIndex], status: obj.status[variantIndex], tier_min: obj.tier_min[variantIndex], tier_max: obj.tier_max[variantIndex], tier_values: obj.tier_values[variantIndex], start_date: obj.start_date[variantIndex], end_date: obj.end_date[variantIndex],Location_Tag_: obj.Location_Tag_ !=undefined && obj.Location_Tag_ !=null ? obj.Location_Tag_[variantIndex] : null,DiscountAppliedON:obj.DiscountAppliedON !=undefined && obj.DiscountAppliedON != null ? obj.DiscountAppliedON[variantIndex]:null,mostPopularValues:obj.mostPopularValues !=undefined && obj.mostPopularValues != null ? obj.mostPopularValues[variantIndex]:[],discountCodeCoupan:obj.discountCodeCoupan !=undefined && obj.discountCodeCoupan != null ? obj.discountCodeCoupan[variantIndex]:'' }; return objToReturn; } 
+        else { return undefined; } 
+      } 
+      else { return obj; } }
+    this.priceChangeFunc = function (selectedVariant) { 
+    let varaintPricearray = [];
+     {% for product in product.variants %}
+       var tempObj = {}
+      tempObj.id = '{{ product.id }}'
+      tempObj.title = `{{ product.title }}`
+      tempObj.price = '{{ product.price }}'
+      varaintPricearray.push(tempObj)
+     {% endfor %}
+    var price = varaintPricearray.find(item => item.id == selectedVariant)?.price;
+      if(price != '' && price != null && price != undefined){
+        return price; 
+      }else{
+        var newprice = '{{ product.price }}'
+        return newprice; 
+      }
+   }
+   this.TitleChangeFunc = function (selectedVariant) { 
+    let varaintPricearray = [];
+     {% for product in product.variants %}
+       var tempObj = {}
+      tempObj.id = '{{ product.id }}'
+      tempObj.title = `{{ product.title }}`
+      tempObj.price = '{{ product.price }}'
+      varaintPricearray.push(tempObj)
+     {% endfor %}
+    var title = varaintPricearray.find(item => item.id == selectedVariant)?.title;
+      if(title != '' && title != null && title != undefined){
+        return title; 
+      }else{
+        var newprice = `{{ product.title }}`
+        return newprice
+      }
+   }
+    this.ConvertToFixedDecimalString = function (amount) { return amount.toFixed(2); }
+    this.TableProductPage = '{{ shop.metafields.ACPTiered.ProductTable }}'
+    this.custom_price_status = '{{ shop.metafields.ACPTiered.customPrice  | default: false }}'
+    this.current_variant = '{{ product.selected_or_first_available_variant.id }}'
+    this.cartDiscountBogo = {{ shop.metafields.ACPTiered.NormalTiers.value | json }}
+    this.mostPopularSettings =  {{ shop.metafields.ACPTiered.mostPopularSettings.value | json }}
+    let CustomercityArray = [];
+    let CustomercountryArray = [];
+    {% for address in customer.addresses %}
+    CustomercityArray.push('{{ address.city | downcase }}');
+    CustomercountryArray.push('{{ address.country | downcase }}');
+    {% endfor %}
+    this.Storecountry = '{{ shop.address.country }}'
+    this.parsed_timer_settings = '{{ shop.metafields.ACPTiered.Timer }}'
+    this.Storecity = '{{ shop.address.city }}'
+    this.Customercountry = CustomercityArray
+    this.Customercity = CustomercountryArray
+    this.bogoDiscountJsonData = {{ shop.metafields.ACPTiered.DiscountlyBogoDiscount.value | json }}
+    this.productTiers = function () { 
+    var selectedVariant = jQuery('input[name^=id]:checked, select[name^=id], input[name=id], hidden[name^=id]', jQuery('form[action="/cart/add"]')).val();
+    selectedVariant = Number(selectedVariant);
+{% if template.name == 'product' %}
+{% capture results %}
+{ "product_id": {{ product.id }},
+{% assign tempCustomerTierCart = false %}
+{% if customer.id != blank and _custLookupTags.size > 0 %}
+  {% assign _prodCustTiers = product.metafields.ACPTiered.CustomerTiers.value %}
+  {% for tag in _custLookupTags %}
+    {% assign _t = _prodCustTiers | where: "tag", tag | map: "tier" %}
+    {% if _t.size > 0 %}
+      {% assign _st = _t[0].status %}
+      {% if _st == true or _st contains true %}
+        {% assign tempCustomerTierCart = _t %}
+        {% break %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+  {% if tempCustomerTierCart == false %}
+    {% assign _shopCustTiers = shop.metafields.ACPTiered.CustomerTiersAllProducts.value %}
+    {% for tag in _custLookupTags %}
+      {% assign _t = _shopCustTiers | where: "tag", tag | map: "tier" %}
+      {% if _t.size > 0 %}
+        {% assign _st = _t[0].status %}
+        {% if _st == true or _st contains true %}
+          {% assign tempCustomerTierCart = _t %}
+          {% break %}
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endif %}
+{% if tempCustomerTierCart != false and tempCustomerTierCart.size > 0 %}
+"tiers" : [{{ tempCustomerTierCart[0] | json }}]
+{% else %}
+  {% assign prodNormalTierCart = product.metafields.ACPTiered.NormalTiers.value %}
+  {% assign prodNormalStatus = prodNormalTierCart[0].status %}
+  {% assign shopNormalTierCart = shop.metafields.ACPTiered.NormalTiersAllProducts.value %}
+  {% assign shopNormalStatus = shopNormalTierCart[0].status %}
+  {% assign prodNormalActive = false %}
+  {% if prodNormalStatus == true or prodNormalStatus contains true %}
+    {% if prodNormalTierCart != blank and prodNormalTierCart.size > 0 %}{% assign prodNormalActive = true %}{% endif %}
+  {% endif %}
+  {% assign shopNormalActive = false %}
+  {% if shopNormalStatus == true or shopNormalStatus contains true %}
+    {% if shopNormalTierCart != blank and shopNormalTierCart.size > 0 %}{% assign shopNormalActive = true %}{% endif %}
+  {% endif %}
+  {% if prodNormalActive %}
+"tiers" : {{ prodNormalTierCart | json }}
+  {% elsif shopNormalActive %}
+"tiers" : {{ shopNormalTierCart | json }}
+  {% else %}
+"tiers" : []
+  {% endif %}
+{% endif %} }
+{% endcapture %}
+  var tierObject = JSON.parse({{ results | json }});
+  let tierObjectUpdated = tierObject;
+  tierObjectUpdated['variant_id'] = selectedVariant;
+  return tierObjectUpdated;
+{% endif %}
+  }
+
+    this.ConvertToFixedDecimalNumber = function (amount) { return Number(amount.toFixed(2)); }
+	{% if template.name == 'product' %} this.isProduct_Page = true; this.productId = '{{ product.id }}'; {% endif %} {% assign isCartPage = false %} {% if template.name == 'cart' %} {% assign isCartPage = true %} {% endif %} this.isCartPage = {{ isCartPage }};  {% assign isProductPage = false %} {% if template.name == 'product' %} {% assign isProductPage = true %} {% endif %}  this.isProductPage = {{ isProductPage }}; this.settings = {{ shop.metafields.ACPTiered.Settings.value | default: 'undefined' | json }}; }
+
+    ACDiscountApp.PDPage.Global = function () { 
+    this.variantsPriceArray_PD=[]; 
+    this.custom_prices=[]; 
+    this.loggedInCustomerTier = {{ product.metafields.ACPTiered.LoggedTiers.value[0] | default: false | json }};
+    this.shopLoggedInCustomerTier = {{ shop.metafields.ACPTiered.LoggedTiersAllProducts.value[0] | default: false | json }};
+    this.excludepdMetafield = {{ product.metafields.ACPTiered.excludeItems.value | default: false | json }};
+
+{% assign tempCutomerProduct = false %}
+{% if customer.id != blank and _custLookupTags.size > 0 %}
+  {% assign _prodCustTiers = product.metafields.ACPTiered.CustomerTiers.value %}
+  {% for tag in _custLookupTags %}
+    {% assign _t = _prodCustTiers | where: "tag", tag | map: "tier" %}
+    {% if _t.size > 0 %}
+      {% assign _st = _t[0].status %}
+      {% if _st == true or _st contains true %}
+        {% assign tempCutomerProduct = _t %}
+        {% break %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+  {% if tempCutomerProduct == false %}
+    {% assign _shopCustTiers = shop.metafields.ACPTiered.CustomerTiersAllProducts.value %}
+    {% for tag in _custLookupTags %}
+      {% assign _t = _shopCustTiers | where: "tag", tag | map: "tier" %}
+      {% if _t.size > 0 %}
+        {% assign _st = _t[0].status %}
+        {% if _st == true or _st contains true %}
+          {% assign tempCutomerProduct = _t %}
+          {% break %}
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endif %}
+
+    {% if tempCutomerProduct != false and tempCutomerProduct.size > 0 %}
+    this.allCustomerProductMetafield = {{ tempCutomerProduct | json }};
+    this.allCustomerAllProductMetafield = false;
+    this.productMetafield = {{ tempCutomerProduct[0] | json }};
+    this.iscustomerRuleRun = true; 
+    {% else %} 
+    this.allCustomerProductMetafield = {{ product.metafields.ACPTiered.NormalTiers.value | default: false | json }};
+    this.allCustomerAllProductMetafield = {{ shop.metafields.ACPTiered.NormalTiersAllProducts.value | default: false | json }}; 
+    this.iscustomerRuleRun = false;  
+    {% assign prodNormalTier = product.metafields.ACPTiered.NormalTiers.value[0] %}
+    {% assign prodNormalStatus = prodNormalTier.status %}
+    {% assign shopNormalTier = shop.metafields.ACPTiered.NormalTiersAllProducts.value[0] %}
+    {% assign shopNormalStatus = shopNormalTier.status %}
+    {% assign prodNormalActive = false %}
+    {% if prodNormalStatus == true or prodNormalStatus contains true %}
+      {% if prodNormalTier != blank %}{% assign prodNormalActive = true %}{% endif %}
+    {% endif %}
+    {% assign shopNormalActive = false %}
+    {% if shopNormalStatus == true or shopNormalStatus contains true %}
+      {% if shopNormalTier != blank %}{% assign shopNormalActive = true %}{% endif %}
+    {% endif %}
+    {% if prodNormalActive %}
+    this.productMetafield = {{ prodNormalTier | json }};
+    {% elsif shopNormalActive %}
+    this.productMetafield = {{ shopNormalTier | json }};
+    {% else %} 
+    this.productMetafield = [];
+    {% endif %}
+    {% endif %}
+    {% for variant in product.variants %} this.variantsPriceArray_PD[{{ variant.id }}]= {{ variant.price }}; this.custom_prices[{{ variant.id }}]= {{ variant.metafields.ACPTiered.custom_prices.value['online']  | default: "[]" | json }}; {% endfor %}  }
+
+    ACDiscountApp.CartPage.Global = function () {
+  this.cartObj= {{ cart | json | default : 'undefined' }};
+  {% assign _shopCustTiers = shop.metafields.ACPTiered.CustomerTiersAllProducts.value %}
+  {% assign shopNormalTierCart = shop.metafields.ACPTiered.NormalTiersAllProducts.value %}
+  {% assign shopNormalStatus = shopNormalTierCart[0].status %}
+  {% assign shopNormalActive = false %}
+  {% if shopNormalStatus == true or shopNormalStatus contains true %}
+    {% if shopNormalTierCart != blank and shopNormalTierCart.size > 0 %}{% assign shopNormalActive = true %}{% endif %}
+  {% endif %}
+	{% capture results %} {% for item in cart.items %}
+ { "product_id": {{ item.product_id }}, "variant_id": {{ item.variant.id }},"excludepdMetafield":{{ item.product.metafields.ACPTiered.excludeItems.value | default: false| json }},
+  {% assign _prodCustTiers = item.product.metafields.ACPTiered.CustomerTiers.value %}
+  {% assign tempCustomerTier = false %}
+  {% if customer.id != blank and _custLookupTags.size > 0 %}
+    {% for tag in _custLookupTags %}
+      {% assign _t = _prodCustTiers | where: "tag", tag | map: "tier" %}
+      {% if _t.size > 0 %}
+        {% assign _st = _t[0].status %}
+        {% if _st == true or _st contains true %}
+          {% assign tempCustomerTier = _t %}
+          {% break %}
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+    {% if tempCustomerTier == false %}
+      {% for tag in _custLookupTags %}
+        {% assign _t = _shopCustTiers | where: "tag", tag | map: "tier" %}
+        {% if _t.size > 0 %}
+          {% assign _st = _t[0].status %}
+          {% if _st == true or _st contains true %}
+            {% assign tempCustomerTier = _t %}
+            {% break %}
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  {% endif %}
+
+  {% if tempCustomerTier != false and tempCustomerTier.size > 0 %}
+    "tiers" : [{{ tempCustomerTier[0] | json }}]
+  {% else %}
+    {% assign prodNormalTierCart = item.product.metafields.ACPTiered.NormalTiers.value %}
+    {% assign prodNormalStatus = prodNormalTierCart[0].status %}
+    {% assign prodNormalActive = false %}
+    {% if prodNormalStatus == true or prodNormalStatus contains true %}
+      {% if prodNormalTierCart != blank and prodNormalTierCart.size > 0 %}{% assign prodNormalActive = true %}{% endif %}
+    {% endif %}
+    {% if prodNormalActive %}
+      "tiers" : {{ prodNormalTierCart | json }}
+    {% elsif shopNormalActive %}
+      "tiers" : {{ shopNormalTierCart | json }}
+    {% else %}
+      "tiers" : []
+    {% endif %}
+  {% endif %}  }{% unless forloop.last %},{% endunless %} {% endfor %}
+ {% endcapture %}
+this.cartTiersArray = [{{ results }}] }
+var globalFields = new ACDiscountApp.Common.GlobalFields();
+</script>
+<script src="{{ 'ac-tiered-qty-cart.js' | asset_url }}" defer="defer"></script>
+<script src="{{ 'ac-tiered-qty-product.js' | asset_url }}" defer="defer"></script>
+{% endif %}
